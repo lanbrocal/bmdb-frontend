@@ -77,8 +77,8 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-950 text-white p-8">
       <header className="mb-10 text-center">
-        <h1 className="text-4xl font-bold mb-2 text-blue-500">Blue Mountain Database</h1>
-        <p className="text-gray-400">Popular Movies Synced from TMDB & OMDb</p>
+        <h1 className="text-4xl font-bold mb-2 text-blue-500">Bad Movie Database</h1>
+        <p className="text-gray-400">Oh Hi Mark</p>
       </header>
 
       {/* --- SEARCH BAR SECTION --- */}
