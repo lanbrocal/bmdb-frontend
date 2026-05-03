@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-// 1. Updated Interface to include the Rotten Tomatoes score
+// 1. Interface to include the Rotten Tomatoes score
 interface Movie {
   tmdb_id: number;
   title: string;
@@ -29,7 +29,6 @@ export default function Home() {
     fetchTrending();
   }, []);
 
-  // 2. Enhanced fetch with 15s Timeout logic for SQL "Cold Starts"
   const fetchTrending = async () => {
     setIsLoading(true);
     setError('');
@@ -96,7 +95,7 @@ export default function Home() {
         <p className="text-gray-400 font-mono text-sm">"Oh Hi Mark"</p>
       </header>
 
-      {/* --- SEARCH BAR SECTION --- */}
+      {/* SEARCH BAR SECTION */}
       <div className="max-w-2xl mx-auto mb-12">
         <form onSubmit={handleSearch} className="flex gap-2">
           <input 
@@ -125,7 +124,7 @@ export default function Home() {
         </form>
       </div>
 
-      {/* --- NOTIFICATIONS / LOADING --- */}
+      {/* NOTIFICATIONS / LOADING */}
       {isLoading && (
         <div className="text-center py-20 animate-pulse">
           <p className="text-blue-400 text-xl font-bold">Waking up the database...</p>
@@ -142,45 +141,73 @@ export default function Home() {
         </div>
       )}
 
-      {/* --- OMDB SEARCH RESULT VIEW --- */}
-      {searchResult && !isLoading ? (
-        <div className="max-w-4xl mx-auto bg-gray-900 rounded-xl overflow-hidden shadow-2xl border border-gray-800 flex flex-col md:flex-row animate-in fade-in duration-500">
-          {searchResult.Poster !== "N/A" && (
-            <img 
-              src={searchResult.Poster} 
-              alt={searchResult.Title} 
-              className="w-full md:w-1/3 object-cover border-r border-gray-800"
-            />
-          )}
-          <div className="p-8 flex flex-col justify-center">
-            <h2 className="text-3xl font-bold mb-2">{searchResult.Title} <span className="text-gray-500 text-xl font-normal">({searchResult.Year})</span></h2>
-            <div className="flex gap-3 mb-6 flex-wrap">
-              <span className="bg-blue-900/50 text-blue-300 border border-blue-800 px-3 py-1 rounded text-sm font-medium">⭐ {searchResult.imdbRating}/10</span>
-              <span className="bg-red-900/50 text-red-300 border border-red-800 px-3 py-1 rounded text-sm font-medium">
-                🍅 {searchResult.Ratings?.find((r:any) => r.Source === 'Rotten Tomatoes')?.Value || searchResult.RT_Score || 'N/A'}
-              </span>
-            </div>
-            <p className="text-gray-300 text-lg mb-6 leading-relaxed border-l-4 border-blue-500 pl-4 italic">
-              {searchResult.Plot}
-            </p>
-            <div className="space-y-2 text-sm text-gray-400">
-              <p><strong className="text-gray-200">Director:</strong> {searchResult.Director || 'N/A'}</p>
-              <p><strong className="text-gray-200">Actors:</strong> {searchResult.Actors || 'N/A'}</p>
-              {searchResult.Source && <p className="text-blue-500/50 mt-4 font-mono text-[10px]">Source: {searchResult.Source}</p>}
+      {/* RESULTS VIEW */}
+      {!isLoading && !error && (
+        searchResult ? (
+          /* OMDB SEARCH RESULT VIEW */
+          <div className="max-w-4xl mx-auto bg-gray-900 rounded-xl overflow-hidden shadow-2xl border border-gray-800 flex flex-col md:flex-row">
+            {searchResult.Poster !== "N/A" && (
+              <img 
+                src={searchResult.Poster} 
+                alt={searchResult.Title} 
+                className="w-full md:w-1/3 object-cover border-r border-gray-800"
+              />
+            )}
+            <div className="p-8 flex flex-col justify-center">
+              <h2 className="text-3xl font-bold mb-2">{searchResult.Title} <span className="text-gray-500 text-xl font-normal">({searchResult.Year})</span></h2>
+              <div className="flex gap-3 mb-6 flex-wrap">
+                <span className="bg-blue-900/50 text-blue-300 border border-blue-800 px-3 py-1 rounded text-sm font-medium">⭐ {searchResult.imdbRating}/10</span>
+                <span className="bg-red-900/50 text-red-300 border border-red-800 px-3 py-1 rounded text-sm font-medium">
+                  🍅 {searchResult.Ratings?.find((r:any) => r.Source === 'Rotten Tomatoes')?.Value || searchResult.RT_Score || 'N/A'}
+                </span>
+              </div>
+              <p className="text-gray-300 text-lg mb-6 leading-relaxed border-l-4 border-blue-500 pl-4 italic">
+                {searchResult.Plot}
+              </p>
+              <div className="space-y-2 text-sm text-gray-400">
+                <p><strong className="text-gray-200">Director:</strong> {searchResult.Director || 'N/A'}</p>
+                <p><strong className="text-gray-200">Actors:</strong> {searchResult.Actors || 'N/A'}</p>
+              </div>
             </div>
           </div>
-        </div>
-      ) : (
-        /* --- TMDB TRENDING GRID VIEW --- */
-        !isLoading && !searchResult && !error && (
+        ) : (
+          /* TMDB TRENDING GRID VIEW */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-            {trendingMovies.length > 0 ? (
-              trendingMovies.map((movie) => (
-                <div 
-                  key={movie.tmdb_id} 
-                  className="bg-gray-900 rounded-xl overflow-hidden shadow-2xl border border-gray-800 hover:border-blue-500 transition-all group cursor-pointer relative" 
-                  onClick={() => { setSearchQuery(movie.title); handleSearch(); }}
-                >
-                  {/* Poster Image */}
-                  <div className="relative aspect-[2/3] overflow-hidden bg-gray-800">
-                    {movie
+            {trendingMovies.map((movie) => (
+              <div 
+                key={movie.tmdb_id} 
+                className="bg-gray-900 rounded-xl overflow-hidden shadow-2xl border border-gray-800 hover:border-blue-500 transition-all group cursor-pointer relative" 
+                onClick={() => { setSearchQuery(movie.title); handleSearch(); }}
+              >
+                <div className="relative aspect-[2/3] overflow-hidden bg-gray-800">
+                  {movie.poster_path ? (
+                    <img 
+                      src={`${IMAGE_BASE_URL}${movie.poster_path}`} 
+                      alt={movie.title}
+                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-gray-600">No Poster</div>
+                  )}
+                  
+                  <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-md text-yellow-400 text-[10px] font-bold px-2 py-1 rounded shadow-lg">
+                    ⭐ {movie.vote_average.toFixed(1)}
+                  </div>
+                  <div className="absolute bottom-2 left-2 bg-red-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg flex items-center gap-1">
+                    <span>🍅</span> {movie.rt_score || 'N/A'}
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  <h2 className="text-lg font-bold leading-tight mb-1 truncate">{movie.title}</h2>
+                  <p className="text-gray-500 text-xs mb-3">{movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</p>
+                  <p className="text-gray-400 text-xs line-clamp-2 italic">{movie.overview}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      )}
+    </main>
+  );
+}
