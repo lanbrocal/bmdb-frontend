@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link'; // Added Link for navigation
 
-// 1. Updated Interface to include is_etrain_pick
 interface Movie {
   tmdb_id: number;
   title: string;
@@ -11,7 +11,7 @@ interface Movie {
   overview: string;
   poster_path: string;
   rt_score: string; 
-  is_etrain_pick: boolean; // Added this
+  is_etrain_pick: boolean;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://bmdbfuncv2-d7ech6d9hqguabe7.westus-01.azurewebsites.net/api/getmovies';
@@ -20,25 +20,14 @@ const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
 export default function Home() {
   const [allMovies, setAllMovies] = useState<Movie[]>([]);
-  const [displayMovies, setDisplayMovies] = useState<Movie[]>([]);
   const [searchResult, setSearchResult] = useState<any>(null); 
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [view, setView] = useState<'all' | 'picks'>('all');
 
   useEffect(() => {
     fetchTrending();
   }, []);
-
-  // Update visible movies when view toggle or allMovies changes
-  useEffect(() => {
-    if (view === 'picks') {
-      setDisplayMovies(allMovies.filter(m => m.is_etrain_pick));
-    } else {
-      setDisplayMovies(allMovies);
-    }
-  }, [view, allMovies]);
 
   const fetchTrending = async () => {
     setIsLoading(true);
@@ -53,7 +42,11 @@ export default function Home() {
       const data = await res.json();
       setAllMovies(data);
     } catch (err: any) {
-      setError(err.name === 'AbortError' ? 'Database timeout. Try again.' : 'Failed to load movies.');
+      if (err.name === 'AbortError') {
+        setError('Database timeout. The server might be waking up—please try again.');
+      } else {
+        setError('Failed to load movies.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -82,22 +75,25 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-950 text-white p-8">
+      {/* --- UPDATED HEADER WITH NAVIGATION --- */}
       <header className="mb-10 text-center">
-        <h1 className="text-4xl font-bold mb-2 text-blue-500 italic uppercase tracking-tighter">Bad Movie Database</h1>
-        <div className="flex justify-center gap-4 mt-4">
-          <button 
-            onClick={() => setView('all')}
-            className={`px-4 py-1 rounded-full text-xs font-bold transition-all ${view === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'}`}
+        <h1 className="text-4xl font-bold mb-2 text-blue-500 italic uppercase tracking-tighter">
+          Bad Movie Database
+        </h1>
+        <nav className="flex justify-center gap-4 mt-4">
+          <Link 
+            href="/" 
+            className="px-4 py-1 rounded-full text-xs font-bold transition-all bg-blue-600 text-white border border-blue-400 shadow-[0_0_10px_rgba(37,99,235,0.3)]"
           >
             ALL DISASTERS
-          </button>
-          <button 
-            onClick={() => setView('picks')}
-            className={`px-4 py-1 rounded-full text-xs font-bold transition-all ${view === 'picks' ? 'bg-yellow-500 text-black' : 'bg-gray-800 text-gray-400'}`}
+          </Link>
+          <Link 
+            href="/picks" 
+            className="px-4 py-1 rounded-full text-xs font-bold transition-all bg-gray-900 text-gray-400 hover:bg-yellow-500 hover:text-black hover:scale-105"
           >
-            💎 ETRAIN'S PICKS
-          </button>
-        </div>
+            💎 HALL OF SHAME
+          </Link>
+        </nav>
       </header>
 
       {/* SEARCH BAR SECTION */}
@@ -107,21 +103,35 @@ export default function Home() {
             type="text" 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search for a disaster..." 
-            className="flex-1 bg-gray-900 border border-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-blue-500"
+            placeholder="Search for a disaster (e.g., The Room)..." 
+            className="flex-1 bg-gray-900 border border-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
           />
-          <button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold disabled:opacity-50">
+          <button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50">
             Search
           </button>
           {(searchResult || error) && (
-            <button type="button" onClick={clearSearch} className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold">
+            <button type="button" onClick={clearSearch} className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
               Reset
             </button>
           )}
         </form>
       </div>
 
-      {isLoading && <div className="text-center py-20 animate-pulse text-blue-400 font-bold">Waking up the database...</div>}
+      {isLoading && (
+        <div className="text-center py-20 animate-pulse">
+          <p className="text-blue-400 text-xl font-bold">Waking up the database...</p>
+          <p className="text-gray-500 text-sm mt-2 font-mono italic">"You're tearing me apart, Lisa!"</p>
+        </div>
+      )}
+
+      {error && !isLoading && (
+        <div className="text-center py-20 border border-dashed border-gray-800 rounded-2xl max-w-2xl mx-auto">
+          <p className="text-red-500 mb-4 font-bold">{error}</p>
+          <button onClick={fetchTrending} className="text-blue-400 underline hover:text-blue-300">
+            🔄 Re-verify the Crimes
+          </button>
+        </div>
+      )}
       
       {!isLoading && !error && (
         searchResult ? (
@@ -137,12 +147,16 @@ export default function Home() {
                 </span>
               </div>
               <p className="text-gray-300 text-lg mb-6 leading-relaxed border-l-4 border-blue-500 pl-4 italic">{searchResult.Plot}</p>
+              <div className="space-y-1 text-sm text-gray-400 font-mono">
+                 <p>Director: {searchResult.Director}</p>
+                 <p>Box Office: {searchResult.BoxOffice}</p>
+              </div>
             </div>
           </div>
         ) : (
-          /* THE MOVIE CARD GRID */
+          /* THE MOVIE CARD GRID (Uses allMovies directly) */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-            {displayMovies.map((movie) => (
+            {allMovies.map((movie) => (
               <div 
                 key={movie.tmdb_id} 
                 className="bg-gray-900 rounded-xl overflow-hidden shadow-2xl border border-gray-800 hover:border-blue-500 transition-all group cursor-pointer relative" 
